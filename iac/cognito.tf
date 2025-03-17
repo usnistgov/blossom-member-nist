@@ -5,7 +5,7 @@ data "aws_cognito_user_pools" "identity" {
 locals {
   cognito_user_pool_id = tolist(data.aws_cognito_user_pools.identity.ids)[0]
   #   debug_callback_url   = "http://localhost:5173/"
-  debug_callback_url   = "http://localhost:4000/"
+  debug_callback_url   = "http://localhost:4000/dev/"
 }
 
 resource "aws_cognito_user_pool_client" "client" {

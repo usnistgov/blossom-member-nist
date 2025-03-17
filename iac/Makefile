@@ -3,8 +3,21 @@ SHELL:=/bin/bash
 AWS_PROFILE:=saml
 TERRAFORM_CMD:=./ter.sh
 
+# The relative PATH to the lambda function code (Currently local)
 LAMBDA_DIR:=./lambda
-DASHBOARD_DIR:=../dashboard
+
+###
+### The path to the Particular DashBoard you mean to build and deploy to your infrastructure
+###
+### !!!Warning!!! 
+### Path values are space sensitive! 
+### Spaces in the beginning or end of path can break script
+###
+### Generic Dashboard
+DASHBOARD_DIR:= ../../blossom-dashboard
+### ~/github/blossom-dashboard
+### Particular ORG-Member Dashboard, preferably forked form blossom-dashboard [This one is NIST]
+# DASHBOARD_DIR:=../../blossom-dashboard-nist
 
 # Use this makefile to ensure the lambda and dashboard have been built before provisioning
 
@@ -62,6 +75,8 @@ $(DASHBOARD_DEVENV_FILE):
 
 $(DASHBOARD_PRODENV_FILE):
 	$(TERRAFORM_CMD) output -raw vite_prod_env > "$(DASHBOARD_PRODENV_FILE)"
+
+
 
 .PHONY: clean-dashboard
 clean-dashboard: ## Clean dashboard build artifacts and environment files

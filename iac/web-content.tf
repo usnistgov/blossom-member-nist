@@ -10,7 +10,9 @@ locals {
     "json" = "application/json"
     "map"  = "application/json"
   }
-  webcontent_builddir = "${path.module}/../dashboard/dist"
+
+  # TODO: !!! Change this line to point to the correct RELATIVE PATH !!!
+  webcontent_builddir = "${path.module}/../../blossom-dashboard/dist"
 }
 
 output "vite_dev_env" {
