@@ -59,16 +59,25 @@ output "client_secret" {
 }
 
 locals {
-  cognito_domain_prefix = "${module.vars.env.network_name}-${lower(module.vars.env.member_name)}"
+  # Older version from blossoN2 times (Before BlossomNIST AMB and SAM-NIST member)
+  # before decoupling of network_name member_name from the 
+  # cognito_domain_prefix = "${module.vars.env.network_name}-${lower(module.vars.env.member_name)}"
+
+  # The last 'compositional logic' from before BlossomNIST network and SAM-NIST member
+  # cognito_domain_prefix = "${module.vars.env.cognito_prefix}-${lower(module.vars.env.cognito_suffix)}"
+  
+  cognito_domain_stem = "${lower(module.vars.env.core_stem_name)}"
+  
 }
 
 resource "aws_cognito_user_pool_domain" "domain" {
   # e.x. blosson-nist2.auth.us-east-1.amazoncognito.com
-  domain       = local.cognito_domain_prefix
+  domain       = local.cognito_domain_stem
   user_pool_id = local.cognito_user_pool_id
 }
 
 output "auth_url" {
-  value     = "https://${local.cognito_domain_prefix}.auth.${var.aws_region}.amazoncognito.com"
+  # value     = "https://${local.cognito_domain_prefix}.auth.${var.aws_region}.amazoncognito.com"
+  value     = "https://${local.cognito_domain_stem}.auth.${var.aws_region}.amazoncognito.com"
   sensitive = false
 }

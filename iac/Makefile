@@ -64,7 +64,12 @@ DASHBOARD_PRODENV_FILE:=$(DASHBOARD_DIR)/.env.prod
 
 .PHONY: build-dashboard
 build-dashboard: $(DASHBOARD_PRODENV_FILE) ## Build the dashboard
-	@echo Building the dashboard project...
+	@echo "🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟n"
+	@echo "🌟 🚀  Building the dashboard project with following configuration:"
+	@echo "🌟	aws_profile = $(AWS_PROFILE)"
+	@echo "🌟	dashboard_at = $(DASHBOARD_DIR)"
+	@echo "🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟"
+
 	$(MAKE) -C "$(DASHBOARD_DIR)" build AWS_PROFILE="$(AWS_PROFILE)"
 
 .PHONY: environment-dashboard
@@ -88,7 +93,12 @@ clean-dashboard: ## Clean dashboard build artifacts and environment files
 
 .PHONY: build-lambda
 build-lambda: ## Build the lambda source
-	@echo Building the lambda project...
+	@echo "🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟"
+	@echo "🌟 🚀  Starting Building the lambda project with following configuration:"
+	@echo "🌟	aws_profile = $(AWS_PROFILE)"
+	@echo "🌟	lambda_at = $(LAMBDA_DIR)"
+	@echo "🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟"
+
 	$(MAKE) -C "$(LAMBDA_DIR)" build AWS_PROFILE="$(AWS_PROFILE)"
 
 .PHONY: clean-lambda
@@ -108,7 +118,19 @@ connection-profile: $(CONNECTION_PROFILE_FILE) ## Generate the connection profil
 
 $(CONNECTION_PROFILE_FILE): $(ENVIRONMENT_CONFIGURATION)
 	@mkdir -p $(CONNECTION_PROFILES_DIR)
+	@echo "🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟"
+	@echo "🌟 🚀  Starting gen-config-profile with the following data:"
+	@echo "🌟	member_id = $(shell jq -r .member_id $(ENVIRONMENT_CONFIGURATION))"
+	@echo "🌟	network_id = $(shell jq -r .network_id $(ENVIRONMENT_CONFIGURATION))"
+	@echo "🌟	channels = [$(shell jq -r .all_channels $(ENVIRONMENT_CONFIGURATION))]"
+	@echo "🌟	tls_cert = ./managedblockchain-tls-chain.pem"
+	@echo "🌟	work_dir = $(shell pwd)"
+	@echo "🌟"
+	@echo "🌟	connection_file = $(CONNECTION_PROFILE_FILE)"
+	@echo "🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟"
+
 	set pipefail; ../util/gen-connection-profile.sh \
+		--member_id "$(shell jq -r .member_id $(ENVIRONMENT_CONFIGURATION))" \
 		--network_id "$(shell jq -r .network_id $(ENVIRONMENT_CONFIGURATION))" \
 		--channels "$(shell jq -r .all_channels $(ENVIRONMENT_CONFIGURATION))" \
 		--tlsCaCertPath "./managedblockchain-tls-chain.pem" \

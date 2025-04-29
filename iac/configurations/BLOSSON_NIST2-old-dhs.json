@@ -1,26 +1,22 @@
 {
-    "network_name": "BlossomNIST",
-    "network_id": "n-Q3IXPKVC7FC7XL2XMUWKRMQ7T4",
-    
-    "member_name": "SAM-NIST",    
-    "member_id": "m-6YQE3YRQTFBB3MT7V32ZZWA7QA",
+    "network_name": "blossom",
+    "network_id": "n-FLXXKM7INVCDXGQMUAH633E6PQ",
 
+    "member_id": "m-DTLKIKVWWZER3DUHQUDH43I7YQ",
     "peer_node_id": "nd-BURDFKAXHRFD3JHWFTPPPEJJ4M",
-
-    "all_channels": "blossom-auth, blossom-asset",
-    "all_contracts": "blossom-auth-cc, blossom-asset-cc",
+   
+    "member_name": "NIST",
+    
 
     "channel_name": "authorization",
     "contract_name": "authorization",
 
-    "auth_channel": "authorization",
-    "auth_contract": "authorization",
-    "bus_channel" : "business",
-    "bus_contract": "business",
-    
+    "all_channels": "authorization, business",
+    "all_contracts": "authorization, business",
+
     "core_bucket_name": "blossom-nist",
     "core_stem_name": "blossom-nist",
-
+    
     "identities_ssm_prefix": "/nist/blossom/dev/user",
     "cognito_user_pool_name": "blossom_test",
 

@@ -26,4 +26,5 @@
 
     "apigw_s3_integration_iam_role_name": "frontend-apigw-s3-integration-role",
     "lambda_execution_iam_role_name": "LambdaExecutionRole"
+    
 }

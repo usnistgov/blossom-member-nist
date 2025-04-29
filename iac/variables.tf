@@ -1,12 +1,14 @@
 module "vars" {
   source = "./module/vars"
-  # Use the selected terraform workspace to select the environment
+  # Use the selected terraform workspace to select the environment by json-file name
   environment       = terraform.workspace
   configuration_dir = "./configurations"
 }
 
 locals {
-  prefix = "b-${module.vars.env.network_name}-${lower(module.vars.env.member_name)}"
+  # Older-style compositional naming of lambda
+  # prefix = "b-${module.vars.env.network_name}-${lower(module.vars.env.member_name)}" core_bucket_name
+  prefix = "b-${lower(module.vars.env.core_bucket_name)}"
   tags = {
     "Terraform"            = "true"
     "Blossom_Network_Name" = module.vars.env.network_name

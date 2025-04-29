@@ -86,13 +86,17 @@ def gen_certificate_authorities(members, tlsCaCertPath: str):
         for member in members
     }
 
-def gen_connection_profile(network_id: str, channels: str, tlsCaCertPath: str):
+def gen_connection_profile(member_id: str, network_id: str, channels: str, tlsCaCertPath: str):
     client = boto3.client('managedblockchain')
     
     network = client.get_network(NetworkId=network_id)['Network']
+    # This will output the debugging comment into the connection profile
+    # print(f'// Configuring connection for: \n//\t{member_id=} and  \n//\t{network_id}')
+
     # get a list of member summaries, then get the actual member objects
     members = [
-        client.get_member(NetworkId=network_id, MemberId='m-DTLKIKVWWZER3DUHQUDH43I7YQ')['Member']
+        # client.get_member(NetworkId=network_id, MemberId='m-DTLKIKVWWZER3DUHQUDH43I7YQ')['Member']
+        client.get_member(NetworkId=network_id, MemberId=member_id)['Member']
     ]
 
     # members = [
@@ -104,7 +108,11 @@ def gen_connection_profile(network_id: str, channels: str, tlsCaCertPath: str):
     nodes = {
         member['Name']: [
             client.get_node(NetworkId=network_id, MemberId=member['Id'], NodeId=summary['Id'])['Node']
-            for summary in client.list_nodes(NetworkId=network_id, MemberId=member['Id'])['Nodes']
+            for summary in client.list_nodes(NetworkId=network_id, MemberId=member['Id'])['Nodes'] 
+                if not (summary["Status"] 
+                        in ['DELETING', 'DELETED', 
+                            'INACCESSIBLE_ENCRYPTION_KEY', 
+                            'CREATE_FAILED'])                
         ]
         for member in members
     }
@@ -135,6 +143,8 @@ if __name__ == '__main__':
     
     parser = ArgumentParser('gen-connection-profile.py',
         description='Generate a connection profile')
+    parser.add_argument('--member_id', type=str, required=True,
+        help="The network id (starts with m-...)")
     parser.add_argument('--network_id', type=str, required=True,
         help="The network id (starts with n-...)")
     parser.add_argument('--channels', default=['authorization', 'business'],
