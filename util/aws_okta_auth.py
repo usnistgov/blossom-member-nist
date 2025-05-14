@@ -69,6 +69,7 @@ class ProcessRunner:
                      output_extractor: callable = None,                     
                 ) -> tuple[str, str, int]:
         if command and isinstance(command, list) and len(command)>0:
+            proc = None
             try:
                 proc = subprocess.run(command, encoding='utf-8', 
                                     stdout=subprocess.PIPE, 
