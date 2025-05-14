@@ -183,7 +183,7 @@ if __name__ == "__main__":
         # print(f"\n\t{cmd_output=}\n\t${error_text=}\n\t${error_code=}")
         print_proc_status(cmd_output, error_text, error_code)
     else:
-        if error_code==-101 or error_code==127:
+        if error_code=="-101" or error_code=="127":
             (os_name, error_text, error_code)=proc.run_command(OktaSettings.OS_UNAME_OS_NAME)
             print_proc_status(cmd_output, error_text, error_code)
             if os_name.strip()=='Darwin':    
