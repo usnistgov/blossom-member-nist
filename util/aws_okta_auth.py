@@ -2,6 +2,7 @@
 
 import os
 import subprocess
+import textwrap
 from enum import Enum
 from posixpath import expanduser
 
@@ -104,6 +105,8 @@ class OktaSettings:
     OKTA_FILE_SECTION_NAME = "blossom-saml"
     OKTA_INIT_LOGIN_COMMAND = ["okta-aws-cli", "web", "--profile", "blossom-dev"]
     OKTA_BASE_COMMAND = ["okta-aws-cli"]
+    OS_UNAME_OS_NAME = ["uname"]
+    OS_UNAME_OS_CPU = ["uname", "-m"]  # x86_64, arm64
 #==============================================================================
 
 class OktaOps:
@@ -146,9 +149,11 @@ class OktaOps:
     #--------------------------------------------------------------------------
 #==============================================================================
 
-
+def print_proc_status(cmd_output: str, error_text: str, error_code: int) -> None:
+    print(f"\n\t{cmd_output=}\n\t${error_text=}\n\t${error_code=}")
 
 if __name__ == "__main__":
+    proc = ProcessRunner() # Create a process  
     # OKTA Login Extra Steps (since May 1, 2025):
 
     # 0. Assure that there is a ~/.okta.okta.yaml is populated as follows or at least contains 
@@ -169,14 +174,35 @@ if __name__ == "__main__":
         open-browser: true
         ...
         ...
-    """
+"""
+    (cmd_output, error_text, error_code)=proc.run_command(OktaSettings.OS_UNAME_OS_NAME)
+    print_proc_status(cmd_output, error_text, error_code)
+
+    (cmd_output, error_text, error_code)=proc.run_command(OktaSettings.OS_UNAME_OS_CPU)
+    print_proc_status(cmd_output, error_text, error_code)
+
 
     # 1. Call `okta-aws-cli web --profile saml` (maybe blossom instead of saml)
-    proc = ProcessRunner() # Create a process  
+
     (cmd_output, error_text, error_code)=proc.run_command(OktaSettings.OKTA_BASE_COMMAND)
     if error_code==0:
         (cmd_output, error_text, error_code)=proc.run_command(OktaSettings.OKTA_INIT_LOGIN_COMMAND)
-        print(f"\n\t{cmd_output=}\n\t${error_text=}\n\t${error_code=}")
+        # print(f"\n\t{cmd_output=}\n\t${error_text=}\n\t${error_code=}")
+        print_proc_status(cmd_output, error_text, error_code)
     else:
-        print(f"\nFailed to find {OktaSettings.OKTA_BASE_COMMAND[0]}\n\t{cmd_output=}\n\t${error_text=}\n\t${error_code=}")
+        if error_code==-101 or error_code==127:
+            (os_name, error_text, error_code)=proc.run_command(OktaSettings.OS_UNAME_OS_NAME)
+            print_proc_status(cmd_output, error_text, error_code)
+            if os_name.strip()=='Darwin':    
+                # MacOS Installation
+                print(textwrap.dedent(
+                        """
+                        On MacOS you can install okta-aws-cli by running the following command:
+
+                        \tbrew install okta-aws-cli
+                        """
+                        )
+                    )
+        else:
+            print(f"\nFailed to find {OktaSettings.OKTA_BASE_COMMAND[0]}\n\t{cmd_output=}\n\t${error_text=}\n\t${error_code=}")
     # 2. Use `aws sts get-caller-identity --profile saml | jq...` to verify that the token is still valid 
