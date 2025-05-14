@@ -175,13 +175,6 @@ if __name__ == "__main__":
         ...
         ...
 """
-    (cmd_output, error_text, error_code)=proc.run_command(OktaSettings.OS_UNAME_OS_NAME)
-    print_proc_status(cmd_output, error_text, error_code)
-
-    (cmd_output, error_text, error_code)=proc.run_command(OktaSettings.OS_UNAME_OS_CPU)
-    print_proc_status(cmd_output, error_text, error_code)
-
-
     # 1. Call `okta-aws-cli web --profile saml` (maybe blossom instead of saml)
 
     (cmd_output, error_text, error_code)=proc.run_command(OktaSettings.OKTA_BASE_COMMAND)
