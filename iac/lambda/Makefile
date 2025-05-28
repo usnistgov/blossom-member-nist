@@ -27,7 +27,8 @@ AMB_CERT_S3_URL:=s3://us-east-1.managedblockchain/etc/managedblockchain-tls-chai
 
 $(AMB_CERT_FILE):
 	@echo Downloading Amazon Managed Blockchain TLS Certificate
-	./../../util/test_reauthenticate_aws_saml.sh
+# 	./../../util/test_reauthenticate_aws_saml.sh
+	./../../util/aws_okta_test.sh
 	mkdir -p "$(dir $(AMB_CERT_FILE))"
 	AWS_PROFILE="$(AWS_PROFILE)" aws s3 cp "$(AMB_CERT_S3_URL)" "$(AMB_CERT_FILE)"
 
@@ -35,7 +36,7 @@ $(AMB_CERT_FILE):
 dependencies: node_modules ## Download project dependencies
 
 node_modules: package.json package-lock.json
-	@echo Downloading dependencies...
+	@echo Running ./lambda/Makefile::node_modules Downloading dependencies...
 	npm ci
 
 # Download runtime dependencies to the node_modules folder of the output artifact
@@ -48,4 +49,5 @@ dist/node_modules: package.json package-lock.json
 
 .PHONY: clean
 clean: ## Clean the project of build and dependency artifacts
+	@echo "Running ./lambda/Makefile::clean"
 	rm -fr dist node_modules

@@ -2,11 +2,22 @@
 
 import os
 import subprocess
+import sys
 import textwrap
 from enum import Enum
 from posixpath import expanduser
 
 from aws_cli_helper import APP, CLI, Level
+
+DEFAULT_SECTION_NAME='saml'
+class OktaSettings:
+    OKTA_CONFIGURATION_FILE = expanduser("~/.okta/okta.yaml")
+    OKTA_FILE_SECTION_NAME = DEFAULT_SECTION_NAME
+    OKTA_INIT_LOGIN_COMMAND = ["okta-aws-cli", "web", "--profile", DEFAULT_SECTION_NAME]
+    OKTA_BASE_COMMAND = ["okta-aws-cli"]
+    # OS_UNAME_OS_NAME = ["uname"]
+    # OS_UNAME_OS_CPU = ["uname", "-m"]  # Can produce: x86_64, arm64
+#==============================================================================
 
 
 class Prerequisites:
@@ -23,11 +34,11 @@ class Environment:
     # region: The default AWS region that this script will connect to for all API calls
     region = os.environ.get('AWS_DEFAULT_REGION', os.environ.get('AWS_REGION', 'us-east-1'))
     
-    # awsconfigfile: The file where this script will store the temp credentials under the saml profile
-    filename = os.environ.get('AWS_SHARED_CREDENTIALS_FILE', f"{expanduser('~')}/.aws/credentials")
+    # aws-config-file: The file where this script will store the temp credentials under the saml profile
+    filename = os.environ.get('AWS_SHARED_CREDENTIALS_FILE', OktaSettings.OKTA_CONFIGURATION_FILE)
 
-    # blossom-dev: The name of section in okta file
-    section = os.environ.get('AWS_PROFILE_SECTION', 'blossom-dev')
+    # saml: The name of section in okta file
+    section = os.environ.get('AWS_PROFILE_SECTION', OktaSettings.OKTA_FILE_SECTION_NAME)
 
     # SSL certificate verification: Whether or not strict certificate verification is done, False should only be used for dev/test
     ssl_verification = os.environ.get('IDP_VERIFY_TLS', True)
@@ -100,14 +111,7 @@ class ProcessRunner:
 #==============================================================================
 
 
-class OktaSettings:
-    OKTA_CONFIGURATION_FILE = "~/.okta/okta.yaml"
-    OKTA_FILE_SECTION_NAME = "blossom-saml"
-    OKTA_INIT_LOGIN_COMMAND = ["okta-aws-cli", "web", "--profile", "blossom-dev"]
-    OKTA_BASE_COMMAND = ["okta-aws-cli"]
-    OS_UNAME_OS_NAME = ["uname"]
-    OS_UNAME_OS_CPU = ["uname", "-m"]  # x86_64, arm64
-#==============================================================================
+
 
 class OktaOps:
     """
@@ -148,10 +152,26 @@ class OktaOps:
             pass
     #--------------------------------------------------------------------------
 #==============================================================================
+MESSAGE_WIDTH=43
 
 def print_proc_status(cmd_output: str, error_text: str, error_code: int) -> None:
-    print(f"\n\t{cmd_output=}\n\t${error_text=}\n\t${error_code=}")
+    print(f"{'❌'*MESSAGE_WIDTH}" if error_code!=0 else f"{'✅'*MESSAGE_WIDTH}" )
+    print(f"cmd_output:")
+    print(cmd_output)
+    print("error_text:" if error_code!=0 else f"info_text:")
+    print('"""')
+    print(error_text)
+    print('"""')
+    print("error_code:") if error_code!=0 else ""
+    print(error_code) if error_code!=0 else ""
+    print(f"{'❌'*MESSAGE_WIDTH}" if error_code!=0 else f"{'✅'*MESSAGE_WIDTH}" )
+    print("\n")      
 
+
+
+#==============================================================================
+# Main Entry-Point
+#==============================================================================
 if __name__ == "__main__":
     proc = ProcessRunner() # Create a process  
     # OKTA Login Extra Steps (since May 1, 2025):
@@ -164,8 +184,8 @@ if __name__ == "__main__":
     profiles:
         ...
         ...
-        # Tht's the section we need for the 
-        blossom-dev:
+        # That's the section we need for the 
+        [saml]:
         aws-region: "us-east-1"
         aws-acct-fed-app-id: "ALPHA_NUMERIC_STRING"
         oidc-client-id: "ALPHA_NUMERIC_STRING"
@@ -184,18 +204,30 @@ if __name__ == "__main__":
         print_proc_status(cmd_output, error_text, error_code)
     else:
         if error_code=="-101" or error_code=="127":
-            (os_name, error_text, error_code)=proc.run_command(OktaSettings.OS_UNAME_OS_NAME)
+            os_name = sys.platform.strip().lower()
             print_proc_status(cmd_output, error_text, error_code)
-            if os_name.strip()=='Darwin':    
+            if os_name=='darwin':    
                 # MacOS Installation
-                print(textwrap.dedent(
-                        """
-                        On MacOS you can install okta-aws-cli by running the following command:
+                CLI.pin_error(textwrap.dedent(
+                                """
+                                On MacOS you can install okta-aws-cli by running the following command:
 
-                        \tbrew install okta-aws-cli
-                        """
-                        )
-                    )
+                                \tbrew install okta-aws-cli
+                                """
+                                )
+                            )
+            elif os_name=='win32':
+                CLI.pin_error(textwrap.dedent(
+                                """
+                                Follow instructions on https://github.com/okta/okta-aws-cli to install okta-aws-cli on Windows
+                                """)
+                            )
+            else:
+                CLI.pin_error(textwrap.dedent(
+                                """
+                                Follow instructions on https://github.com/okta/okta-aws-cli to install okta-aws-cli on your OS
+                                """)
+                            )
         else:
             print(f"\nFailed to find {OktaSettings.OKTA_BASE_COMMAND[0]}\n\t{cmd_output=}\n\t${error_text=}\n\t${error_code=}")
     # 2. Use `aws sts get-caller-identity --profile saml | jq...` to verify that the token is still valid 

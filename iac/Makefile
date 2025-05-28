@@ -1,10 +1,10 @@
 SHELL:=/bin/bash
 
 AWS_PROFILE:=saml
-TERRAFORM_CMD:=./ter.sh
+TERRAFORM_CMD:=./tok.sh
 
 # The relative PATH to the lambda function code (Currently local)
-LAMBDA_DIR:=./lambda
+LAMBDA_DIR:="./lambda"
 
 ###
 ### The path to the Particular DashBoard you mean to build and deploy to your infrastructure
@@ -103,15 +103,29 @@ build-lambda: ## Build the lambda source
 
 .PHONY: clean-lambda
 clean-lambda: ## Clean lambda build artifacts
+## @echo "Beginning Task: [clean-lambda]"
+## @echo "LAMBDA_DIR=$(LAMBDA_DIR)"
+## @echo "Executing Task: $(LAMBDA_DIR)/Makefile clean"
 	$(MAKE) -C "$(LAMBDA_DIR)" clean
 
 # Connection Profile
 
-TERRAFORM_WORKSPACE:=$(shell $(TERRAFORM_CMD) workspace show)
-CONNECTION_PROFILES_DIR:=connection_profiles
-CONNECTION_PROFILE_FILE:=$(CONNECTION_PROFILES_DIR)/$(TERRAFORM_WORKSPACE).json
+	@echo "	b4:	ENVIRONMENT_CONFIGURATION=$(ENVIRONMENT_CONFIGURATION)"
+	@echo "	b4:	TERRAFORM_WORKSPACE=$(TERRAFORM_WORKSPACE)"
+	@echo "	b4:	CONNECTION_PROFILE_FILE=$(CONNECTION_PROFILE_FILE)"
+	@echo "	b4:	TERRAFORM_CMD=$(TERRAFORM_CMD)"
 
-ENVIRONMENT_CONFIGURATION=configurations/$(TERRAFORM_WORKSPACE).json
+	TERRAFORM_WORKSPACE:=$(shell $(TERRAFORM_CMD) workspace show)
+	@echo "	1:	TERRAFORM_WORKSPACE=$(TERRAFORM_WORKSPACE)"
+	CONNECTION_PROFILES_DIR:=connection_profiles
+	@echo "	2:	CONNECTION_PROFILES_DIR=$(CONNECTION_PROFILES_DIR)"
+	CONNECTION_PROFILE_FILE:=$(CONNECTION_PROFILES_DIR)/$(TERRAFORM_WORKSPACE).json
+	@echo "	3:	CONNECTION_PROFILE_FILE=$(CONNECTION_PROFILE_FILE)"
+	ENVIRONMENT_CONFIGURATION=configurations/$(TERRAFORM_WORKSPACE).json
+
+	@echo "	P:	ENVIRONMENT_CONFIGURATION=$(ENVIRONMENT_CONFIGURATION)"
+	@echo "	P:	TERRAFORM_WORKSPACE=$(TERRAFORM_WORKSPACE)"
+	@echo "	P:	CONNECTION_PROFILE_FILE=$(CONNECTION_PROFILE_FILE)"
 
 .PHONY: connection-profile
 connection-profile: $(CONNECTION_PROFILE_FILE) ## Generate the connection profile for the given workspace
