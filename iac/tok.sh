@@ -14,7 +14,6 @@ if ! [ -x "$(command -v terraform)" ]; then
 fi
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
-
 # AWS_PROFILE="saml" terraform "$@"
 # echo "  ter.sh:  AWS_PROFILE=$AWS_PROFILE"
 # msg "  ter.sh:  BASH_SOURCE[0]=${BASH_SOURCE[0]}"
@@ -22,9 +21,11 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 # msg "  ter.sh:  COMMAND=$@"
 
 (
-    cd $SCRIPT_DIR
+current_dir="$PWD"
+cd $SCRIPT_DIR
 
-    ./../util/aws_okta_test.sh
+../util/aws_okta_test.sh
 
-    AWS_PROFILE="saml" terraform "$@"
+AWS_PROFILE="saml" terraform "$@"
+cd "$current_dir"
 )

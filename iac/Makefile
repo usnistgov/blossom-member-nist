@@ -4,7 +4,7 @@ AWS_PROFILE:=saml
 TERRAFORM_CMD:=./tok.sh
 
 # The relative PATH to the lambda function code (Currently local)
-LAMBDA_DIR:="./lambda"
+LAMBDA_DIR:=./lambda
 
 ###
 ### The path to the Particular DashBoard you mean to build and deploy to your infrastructure

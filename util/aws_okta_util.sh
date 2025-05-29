@@ -11,18 +11,17 @@ msg() {
 
 # Display AWS and OKTA setting from ENV
 show_env_info(){
-  echo
-if [ $# -gt 0 ]; then
-  msg "Selected Environment Variables [AWS, OKTA,] from $1:"
-else
-  msg "Selected Environment Variables [AWS, OKTA,]:"
-fi
-env | grep AWS
-env | grep OKTA
-
+  echo ""
+  if [ $# -gt 0 ]; then
+    msg "Selected Environment Variables [AWS, OKTA,] from $1:"
+  else
+    msg "Selected Environment Variables [AWS, OKTA,]:"
+  fi
+  # env | grep AWS
+  # env | grep OKTA
 }
 
-function stack_trace() {
+stack_trace() {
   local -a stack=("Stack trace:")
   local stack_size=${#FUNCNAME[@]}
   local -i i

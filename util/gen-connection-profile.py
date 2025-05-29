@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # Generate a connection profile
 
+import datetime as DT
+from datetime import datetime
 from itertools import chain
 
 import boto3
@@ -127,7 +129,7 @@ def gen_connection_profile(member_id: str, network_id: str, channels: str, tlsCa
     return {
         'name': network_name,
         'x-type': 'hlfv1',
-        'description': f'Generated connection profile',
+        'description': f'AutoGen profile Local:{datetime.now().isoformat()} UTC:{datetime.now(DT.UTC).isoformat()}',
         'version': '1.0',
         'channels': gen_channels(channels_list, orderer_name, nodes),
         'orderers': gen_orderers(network, tlsCaCertPath),
@@ -147,7 +149,7 @@ if __name__ == '__main__':
         help="The network id (starts with m-...)")
     parser.add_argument('--network_id', type=str, required=True,
         help="The network id (starts with n-...)")
-    parser.add_argument('--channels', default=['authorization', 'business'],
+    parser.add_argument('--channels', default="auth,asset",
         help='Channels to include in the profile')
     parser.add_argument('--tlsCaCertPath',
         default='/home/ec2-user/managedblockchain-tls-chain.pem',
@@ -158,8 +160,21 @@ if __name__ == '__main__':
     ### print(vars(args))
     ### print('\t🐞🐞🐞\n')
 
+
+
     connection_profile = gen_connection_profile(**args.__dict__)
-    print(json.dumps(connection_profile, indent=4))
+    # Sometimes after base-64 encoding for the profile string to grow 
+    # larger than 4K size restriction of the AWS-Lambda-Environment 
+    # on the value of the environmental variable. It is possible that 
+    # in the future we might need to use `compact-json 1.8.1`
+    # instead of the plain json.dumps. 
+    #
+    # Currently changing the indent= from 4 to 1 did the job. 
+    #
+    # (https://pypi.org/project/compact-json/) 
+    # Installable in python by running
+    # `pip install compact-json`
+    print(json.dumps(connection_profile, indent=1))
 
     if len(args.channels) == 0:
         print("WARNING: no channels were specified", file=stderr)

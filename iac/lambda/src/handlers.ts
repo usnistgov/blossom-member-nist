@@ -5,12 +5,12 @@ import { int } from "aws-sdk/clients/datapipeline";
 
 // const CHANNEL_NAME = process.env.CHANNEL_NAME ?? 'acquisition';
 // const CONTRACT_NAME = process.env.CONTRACT_NAME ?? 'blossom';
-const CHANNEL_NAME = process.env.CHANNEL_NAME ?? 'authorization';
-const CONTRACT_NAME = process.env.CONTRACT_NAME ?? 'authorization';
-const AUTH_CHANNEL = process.env.AUTH_CHANNEL ?? 'authorization';
-const AUTH_CONTRACT = process.env.AUTH_CONTRACT  ?? 'authorization';
-const BUS_CHANNEL = process.env.BUS_CHANNEL ?? "business" ;
-const BUS_CONTRACT = process.env.BUS_CONTRACT ?? "business";
+const CHANNEL_NAME = process.env.CHANNEL_NAME ?? 'blossom-auth';
+const CONTRACT_NAME = process.env.CONTRACT_NAME ?? 'blossom-auth';
+const AUTH_CHANNEL = process.env.AUTH_CHANNEL ?? 'blossom-auth';
+const AUTH_CONTRACT = process.env.AUTH_CONTRACT  ?? 'blossom-auth';
+const BUS_CHANNEL = process.env.BUS_CHANNEL ?? "blossom-asset" ;
+const BUS_CONTRACT = process.env.BUS_CONTRACT ?? "blossom-asset";
 const THIS_FILE = "handlers.ts";
 
 export type HandlerFunc = (event: APIGatewayEvent, bodyJson: any) => Promise<APIGatewayProxyResult>;

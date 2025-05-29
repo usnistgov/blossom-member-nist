@@ -5,18 +5,18 @@
     "member_name": "SAM-NIST",    
     "member_id": "m-6YQE3YRQTFBB3MT7V32ZZWA7QA",
 
-    "peer_node_id": "nd-BURDFKAXHRFD3JHWFTPPPEJJ4M",
+    "peer_node_id": "nd-BCKHS3NJO5H3LGTZNUOMJ3NDOQ",
 
-    "all_channels": "blossom-auth, blossom-asset",
-    "all_contracts": "blossom-auth-cc, blossom-asset-cc",
+    "all_channels": "blossom-auth,blossom-asset",
+    "all_contracts": "blossom-auth-cc,blossom-asset-cc",
 
-    "channel_name": "authorization",
-    "contract_name": "authorization",
+    "channel_name": "blossom-auth",
+    "contract_name": "blossom-auth-cc",
 
-    "auth_channel": "authorization",
-    "auth_contract": "authorization",
-    "bus_channel" : "business",
-    "bus_contract": "business",
+    "auth_channel": "blossom-auth",
+    "auth_contract": "blossom-auth-cc",
+    "bus_channel" : "blossom-asset",
+    "bus_contract": "blossom-asset-cc",
     
     "core_bucket_name": "blossom-nist",
     "core_stem_name": "blossom-nist",
