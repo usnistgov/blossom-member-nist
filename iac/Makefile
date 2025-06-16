@@ -1,10 +1,17 @@
 SHELL:=/bin/bash
-
 AWS_PROFILE:=saml
 TERRAFORM_CMD:=./tok.sh
-
 # The relative PATH to the lambda function code (Currently local)
 LAMBDA_DIR:=./lambda
+
+# Profile-specific settings
+CONNECTION_PROFILES_DIR:=./connection_profiles
+CONNECTION_PROFILE_FILE:=./connection_profiles/$(shell $(TERRAFORM_CMD) workspace show).json
+ENVIRONMENT_CONFIGURATION:=./configurations/$(shell $(TERRAFORM_CMD) workspace show).json
+# Profile-specific info
+$(info CONNECTION_PROFILES_DIR: $(CONNECTION_PROFILES_DIR))
+$(info ENVIRONMENT_CONFIGURATION: $(ENVIRONMENT_CONFIGURATION))
+$(info CONNECTION_PROFILE_FILE: $(CONNECTION_PROFILE_FILE))
 
 ###
 ### The path to the Particular DashBoard you mean to build and deploy to your infrastructure
@@ -69,15 +76,12 @@ build-dashboard: $(DASHBOARD_PRODENV_FILE) ## Build the dashboard
 	@echo "🌟	aws_profile = $(AWS_PROFILE)"
 	@echo "🌟	dashboard_at = $(DASHBOARD_DIR)"
 	@echo "🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟"
-
 	$(MAKE) -C "$(DASHBOARD_DIR)" build AWS_PROFILE="$(AWS_PROFILE)"
 
 .PHONY: environment-dashboard
 environment-dashboard: $(DASHBOARD_DEVENV_FILE) $(DASHBOARD_PRODENV_FILE) ## Produce dashboard environment files
-
 $(DASHBOARD_DEVENV_FILE):
 	$(TERRAFORM_CMD) output -raw vite_dev_env > "$(DASHBOARD_DEVENV_FILE)"
-
 $(DASHBOARD_PRODENV_FILE):
 	$(TERRAFORM_CMD) output -raw vite_prod_env > "$(DASHBOARD_PRODENV_FILE)"
 
@@ -98,7 +102,6 @@ build-lambda: ## Build the lambda source
 	@echo "🌟	aws_profile = $(AWS_PROFILE)"
 	@echo "🌟	lambda_at = $(LAMBDA_DIR)"
 	@echo "🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟"
-
 	$(MAKE) -C "$(LAMBDA_DIR)" build AWS_PROFILE="$(AWS_PROFILE)"
 
 .PHONY: clean-lambda
@@ -108,47 +111,32 @@ clean-lambda: ## Clean lambda build artifacts
 ## @echo "Executing Task: $(LAMBDA_DIR)/Makefile clean"
 	$(MAKE) -C "$(LAMBDA_DIR)" clean
 
-# Connection Profile
-
-	@echo "	b4:	ENVIRONMENT_CONFIGURATION=$(ENVIRONMENT_CONFIGURATION)"
-	@echo "	b4:	TERRAFORM_WORKSPACE=$(TERRAFORM_WORKSPACE)"
-	@echo "	b4:	CONNECTION_PROFILE_FILE=$(CONNECTION_PROFILE_FILE)"
-	@echo "	b4:	TERRAFORM_CMD=$(TERRAFORM_CMD)"
-
-	TERRAFORM_WORKSPACE:=$(shell $(TERRAFORM_CMD) workspace show)
-	@echo "	1:	TERRAFORM_WORKSPACE=$(TERRAFORM_WORKSPACE)"
-	CONNECTION_PROFILES_DIR:=connection_profiles
-	@echo "	2:	CONNECTION_PROFILES_DIR=$(CONNECTION_PROFILES_DIR)"
-	CONNECTION_PROFILE_FILE:=$(CONNECTION_PROFILES_DIR)/$(TERRAFORM_WORKSPACE).json
-	@echo "	3:	CONNECTION_PROFILE_FILE=$(CONNECTION_PROFILE_FILE)"
-	ENVIRONMENT_CONFIGURATION=configurations/$(TERRAFORM_WORKSPACE).json
-
-	@echo "	P:	ENVIRONMENT_CONFIGURATION=$(ENVIRONMENT_CONFIGURATION)"
-	@echo "	P:	TERRAFORM_WORKSPACE=$(TERRAFORM_WORKSPACE)"
-	@echo "	P:	CONNECTION_PROFILE_FILE=$(CONNECTION_PROFILE_FILE)"
 
 .PHONY: connection-profile
-connection-profile: $(CONNECTION_PROFILE_FILE) ## Generate the connection profile for the given workspace
-
-$(CONNECTION_PROFILE_FILE): $(ENVIRONMENT_CONFIGURATION)
-	@mkdir -p $(CONNECTION_PROFILES_DIR)
+connection-profile: ## Generate the connection profile for the given workspace
+	## Beginning Building Connection Profile  $(CONNECTION_PROFILE_FILE)
 	@echo "🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟"
-	@echo "🌟 🚀  Starting gen-config-profile with the following data:"
-	@echo "🌟	member_id = $(shell jq -r .member_id $(ENVIRONMENT_CONFIGURATION))"
-	@echo "🌟	network_id = $(shell jq -r .network_id $(ENVIRONMENT_CONFIGURATION))"
-	@echo "🌟	channels = [$(shell jq -r .all_channels $(ENVIRONMENT_CONFIGURATION))]"
-	@echo "🌟	tls_cert = ./managedblockchain-tls-chain.pem"
-	@echo "🌟	work_dir = $(shell pwd)"
-	@echo "🌟"
-	@echo "🌟	connection_file = $(CONNECTION_PROFILE_FILE)"
+	@echo "🌟 🚀 	Starting gen-config-profile with the following data:"
+	@echo "🌟 🚀	Making DIR:	$(CONNECTION_PROFILES_DIR) "
+	@echo "🌟 🚀	For FILE:	$(CONNECTION_PROFILE_FILE) "
+	@echo "🌟 🚀	From ENV:	$(ENVIRONMENT_CONFIGURATION) "
 	@echo "🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟"
-
-	set pipefail; ../util/gen-connection-profile.sh \
-		--member_id "$(shell jq -r .member_id $(ENVIRONMENT_CONFIGURATION))" \
-		--network_id "$(shell jq -r .network_id $(ENVIRONMENT_CONFIGURATION))" \
-		--channels "$(shell jq -r .all_channels $(ENVIRONMENT_CONFIGURATION))" \
+	$(shell mkdir -p $(CONNECTION_PROFILES_DIR))
+	$(shell set pipefail; ../util/gen-connection-profile.sh \
+		--member_id "$$(jq -r .member_id $(ENVIRONMENT_CONFIGURATION))" \
+		--network_id "$(jq -r .network_id $(ENVIRONMENT_CONFIGURATION))" \
+		--channels "$(jq -r .all_channels $(ENVIRONMENT_CONFIGURATION))" \
 		--tlsCaCertPath "./managedblockchain-tls-chain.pem" \
-	> $(CONNECTION_PROFILE_FILE)
+	> $(CONNECTION_PROFILE_FILE))
+
+##
+##../util/gen-connection-profile.sh \
+##		--member_id "$(shell jq -r .member_id $(ENVIRONMENT_CONFIGURATION))" \
+##		--network_id "$(shell jq -r .network_id $(ENVIRONMENT_CONFIGURATION))" \
+##		--channels "$(shell jq -r .all_channels $(ENVIRONMENT_CONFIGURATION))" \
+##		--tlsCaCertPath "./managedblockchain-tls-chain.pem" \
+##	> $(CONNECTION_PROFILE_FILE)
+##
 
 .PHONY: clean-connection-profile
 clean-connection-profile: ## Clean the connection profile
