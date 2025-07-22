@@ -7,7 +7,7 @@ from pprint import pprint
 
 import boto3
 
-# ===============================================
+#--------------------------------------
 
 class Environment:
 
@@ -23,11 +23,28 @@ class Environment:
         # ===--- Read lambda environment variables ---===
         Environment.OUR_REGION      = os.environ.get('BLOSSOM_REGION')
         Environment.EC2_ID  = os.environ.get('EC2_INSTANCE_ID')
+        
         # Array in case we need to split members by different EC2 instances
         Environment.EC2_INSTANCES   = [Environment.EC2_ID] 
         Environment.EC2_CLIENT      = boto3.client('ec2', region_name=Environment.OUR_REGION)
         # Create SSM Client
         Environment.SSM_EC2_CLIENT  = boto3.client('ssm')
+
+    @staticmethod
+    def log_environment() -> str:
+        """ Produce Shaped Environment Log-Entry
+        Returns:
+            str: Shaped description of the environment
+        """
+        message = [
+            "Environment Summary:"
+            " - EC2 region:\n\t{Environment.OUR_REGION}",
+            " - EC2 instance:\n\t{Environment.EC2_ID}",
+            " - EC2 instance:\n\t{Environment.EC2_ID}",
+            " - EC2 instance:\n\t{Environment.EC2_ID}",
+        ]
+#------------------------------------------------------------------------------
+
 
 
 def run_ec2_commands(command: str):
@@ -39,22 +56,28 @@ def run_ec2_commands(command: str):
     Environment.set_up()
     print(f'Environment Read\n{"="*64}')
     client = Environment.SSM_EC2_CLIENT
-    response = client.send_command(
-      
-        InstanceIds= Environment.EC2_INSTANCES,
-        DocumentName='AWS-RunShellScript',
-        Parameters={            
-            'commands': [
-                ### 1. Run the S3-Bucket Handler
-                (f' runuser -l  ec2-user -c "{command}"'),
-            ],
-            'workingDirectory': ['~/'], # /home/ec2-user
-            # 'id': ['BloSS@M-Test'],
-            ### !!! The script executes a long-running chunk of work !!! 
-            ### !!! Be super-careful playing with the timeout value !!! 
-            'executionTimeout':['99'] 
-        }
-    )
+    try:
+        response = client.send_command(
+        
+            InstanceIds= Environment.EC2_INSTANCES,
+            DocumentName='AWS-RunShellScript',
+            Parameters={            
+                'commands': [
+                    ### 1. Run the S3-Bucket Handler
+                    (f' runuser -l  ec2-user -c "{command}"'),
+                ],
+                'workingDirectory': ['~/'], # /home/ec2-user
+                # 'id': ['BloSS@M-Test'],
+                ### !!! The script executes a long-running chunk of work !!! 
+                ### !!! Be super-careful playing with the timeout value !!! 
+                'executionTimeout':['99'] 
+            }
+        )
+    except Exception as ex:
+        print(f"The following Exception was raised:\n\t{ex}")
+        print(f" - Attempting to run command:\n\t{command}")
+        print(f" - On the following EC2 instance:\n\t{Environment.EC2_ID}")
+
     command_id = response['Command']['CommandId']
     tries = 0
     output = 'False'
@@ -86,6 +109,7 @@ def run_ec2_commands(command: str):
     print('\n\n')
     print(f'{"="*64}')
     return(output, Statuses, Contexts)
+#------------------------------------------------------------------------------
 
 class Key(Enum):
     ActionType = "type"
@@ -120,7 +144,17 @@ TEXT_MAP={
 }
 #------------------------------------------------------------------------------    
 def lambda_handler(event, context):
+    """ Traditional lambda handler
 
+    Args:
+        event (_type_): Request Event
+        context (_type_): Content of the event
+
+    Returns:
+        _type_: REturns HTTP-Code and Response Body wrapped in JSON Object
+    """
+    print(f"{event=}") 
+    print(f"{context=}") 
     try:
 
         event_keys = [ key.lower() for key in event.keys() ]

@@ -6,12 +6,12 @@ LAMBDA_DIR:=./lambda
 
 # Profile-specific settings
 CONNECTION_PROFILES_DIR:=./connection_profiles
-CONNECTION_PROFILE_FILE:=./connection_profiles/$(shell $(TERRAFORM_CMD) workspace show).json
+CONNECTION_PROFILE:=./connection_profiles/$(shell $(TERRAFORM_CMD) workspace show).json
 ENVIRONMENT_CONFIGURATION:=./configurations/$(shell $(TERRAFORM_CMD) workspace show).json
 # Profile-specific info
 $(info CONNECTION_PROFILES_DIR: $(CONNECTION_PROFILES_DIR))
 $(info ENVIRONMENT_CONFIGURATION: $(ENVIRONMENT_CONFIGURATION))
-$(info CONNECTION_PROFILE_FILE: $(CONNECTION_PROFILE_FILE))
+$(info CONNECTION_PROFILE: $(CONNECTION_PROFILE))
 
 ###
 ### The path to the Particular DashBoard you mean to build and deploy to your infrastructure
@@ -113,21 +113,22 @@ clean-lambda: ## Clean lambda build artifacts
 
 
 .PHONY: connection-profile
-connection-profile: ## Generate the connection profile for the given workspace
-	## Beginning Building Connection Profile  $(CONNECTION_PROFILE_FILE)
+connection-profile:  ## Generate the connection profile for the given workspace
+	## $(CONNECTION_PROFILE)
+	## Beginning Building Connection Profile  $(CONNECTION_PROFILE)
 	@echo "🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟"
 	@echo "🌟 🚀 	Starting gen-config-profile with the following data:"
 	@echo "🌟 🚀	Making DIR:	$(CONNECTION_PROFILES_DIR) "
-	@echo "🌟 🚀	For FILE:	$(CONNECTION_PROFILE_FILE) "
+	@echo "🌟 🚀	For FILE:	$(CONNECTION_PROFILE) "
 	@echo "🌟 🚀	From ENV:	$(ENVIRONMENT_CONFIGURATION) "
 	@echo "🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟"
 	$(shell mkdir -p $(CONNECTION_PROFILES_DIR))
 	$(shell set pipefail; ../util/gen-connection-profile.sh \
 		--member_id "$$(jq -r .member_id $(ENVIRONMENT_CONFIGURATION))" \
-		--network_id "$(jq -r .network_id $(ENVIRONMENT_CONFIGURATION))" \
-		--channels "$(jq -r .all_channels $(ENVIRONMENT_CONFIGURATION))" \
+		--network_id "$$(jq -r .network_id $(ENVIRONMENT_CONFIGURATION))" \
+		--channels "$$(jq -r .all_channels $(ENVIRONMENT_CONFIGURATION))" \
 		--tlsCaCertPath "./managedblockchain-tls-chain.pem" \
-	> $(CONNECTION_PROFILE_FILE))
+	> $(CONNECTION_PROFILE))
 
 ##
 ##../util/gen-connection-profile.sh \
@@ -135,9 +136,9 @@ connection-profile: ## Generate the connection profile for the given workspace
 ##		--network_id "$(shell jq -r .network_id $(ENVIRONMENT_CONFIGURATION))" \
 ##		--channels "$(shell jq -r .all_channels $(ENVIRONMENT_CONFIGURATION))" \
 ##		--tlsCaCertPath "./managedblockchain-tls-chain.pem" \
-##	> $(CONNECTION_PROFILE_FILE)
+##	> $(CONNECTION_PROFILE)
 ##
 
 .PHONY: clean-connection-profile
 clean-connection-profile: ## Clean the connection profile
-	rm -f $(CONNECTION_PROFILE_FILE)
+	rm -f $(CONNECTION_PROFILE)

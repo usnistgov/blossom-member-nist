@@ -111,8 +111,6 @@ class ProcessRunner:
 #==============================================================================
 
 
-
-
 class OktaOps:
     """
     Sample the content in  ~/.aws/credentials

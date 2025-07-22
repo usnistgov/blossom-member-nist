@@ -3,3 +3,6 @@
 terraform.tfstate.d
 connection_profiles/
 *node_modules/*
+
+# Ignore disabled/debugged TerraForm files 
+*.dtf

@@ -21,6 +21,12 @@
     "core_bucket_name": "blossom-nist",
     "core_stem_name": "blossom-nist",
 
+    "lambda_s3_suffix"  : "s3-watch",
+    "s3_watched_uri"    : "s3://b-blossom-nist-gate",
+    "lambda_ec2_suffix" : "ec2-auto",
+    "ec2_instance_id"   : "i-077bd491f13f9f29e",
+
+
     "identities_ssm_prefix": "/nist/blossom/dev/user",
     "cognito_user_pool_name": "blossom_test",
 
