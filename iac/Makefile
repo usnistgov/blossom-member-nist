@@ -3,6 +3,7 @@ AWS_PROFILE:=saml
 TERRAFORM_CMD:=./tok.sh
 # The relative PATH to the lambda function code (Currently local)
 LAMBDA_DIR:=./lambda
+LAMBDA_AA_DIR:=./../automation/lambdas/ec2-lambda
 
 # Profile-specific settings
 CONNECTION_PROFILES_DIR:=./connection_profiles
@@ -21,7 +22,9 @@ $(info CONNECTION_PROFILE: $(CONNECTION_PROFILE))
 ### Spaces in the beginning or end of path can break script
 ###
 ### Generic Dashboard
-DASHBOARD_DIR:= ../../blossom-dashboard
+DASHBOARD_DIR:=../../blossom-dashboard
+AA_LAMBDA_DIR:=$(DASHBOARD_DIR)/automation/lambdas/ec2-lambda
+S3_LAMBDA_DIR:=$(DASHBOARD_DIR)/automation/lambdas/s3-lambda
 ### ~/github/blossom-dashboard
 ### Particular ORG-Member Dashboard, preferably forked form blossom-dashboard [This one is NIST]
 # DASHBOARD_DIR:=../../blossom-dashboard-nist
@@ -59,7 +62,7 @@ refresh: ## Refresh Terraform outputs
 	$(TERRAFORM_CMD) refresh
 
 .PHONY: build
-build: build-lambda build-dashboard connection-profile ## Build all dependencies
+build: build-aa-lambda build-lambda build-dashboard connection-profile ## Build all dependencies
 
 .PHONY: clean
 clean: clean-dashboard clean-lambda clean-connection-profile ## Clean dependencies of all artifacts
@@ -103,6 +106,17 @@ build-lambda: ## Build the lambda source
 	@echo "🌟	lambda_at = $(LAMBDA_DIR)"
 	@echo "🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟"
 	$(MAKE) -C "$(LAMBDA_DIR)" build AWS_PROFILE="$(AWS_PROFILE)"
+
+.PHONY: build-aa-lambda
+build-aa-lambda: ## Build the lambda source
+	@echo "🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟"
+	@echo "🌟 🚀  Starting Building the AA-lambda-4-EC2 with following configuration:"
+	@echo "🌟	aws_profile = $(AWS_PROFILE)"
+	@echo "🌟	lambda_at = $(LAMBDA_AA_DIR)"
+	@echo "🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟"
+## $(MAKE) -C "$(AA_LAMBDA_DIR)" build AWS_PROFILE="$(AWS_PROFILE)"
+## $(shell .././automation/lambdas/ec2-lambda/pack_aa.sh)
+	$(MAKE) -C "$(LAMBDA_AA_DIR)" build AWS_PROFILE="$(AWS_PROFILE)"
 
 .PHONY: clean-lambda
 clean-lambda: ## Clean lambda build artifacts

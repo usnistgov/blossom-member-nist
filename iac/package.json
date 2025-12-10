@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@tabler/icons": "^1.119.0",
     "@types/node": "^18.19.33",
     "undici-types": "^5.26.5",
     "yaml": "^2.4.2"

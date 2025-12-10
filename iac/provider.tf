@@ -8,7 +8,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "5.27.0"
+      version = "6.12.0" # "5.27.0" the last pre-update version without Python 3.13
     }
   }
 }

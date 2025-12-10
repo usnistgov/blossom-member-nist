@@ -5,7 +5,8 @@ resource "aws_api_gateway_rest_api" "gw" {
 }
 
 resource "aws_api_gateway_deployment" "gw-deployment" {
-  rest_api_id = aws_api_gateway_rest_api.gw.id
+  rest_api_id     = aws_api_gateway_rest_api.gw.id
+
 
   triggers = {
     redeployment = sha1(jsonencode([
@@ -30,8 +31,23 @@ resource "aws_api_gateway_deployment" "gw-deployment" {
   }
 }
 
+
+# This assures presence ot the invoke_url = "https://pix35w1qac.execute-api.us-east-1.amazonaws.com/" below
+# resource "aws_api_gateway_stage" "gw_stage_dev" {
+#   rest_api_id   = aws_api_gateway_rest_api.gw.id
+#   deployment_id = aws_api_gateway_deployment.gw-deployment.id
+#   stage_name    = "dev"
+# }
+resource "aws_api_gateway_stage" "gw-stage" {
+  deployment_id = aws_api_gateway_deployment.gw-deployment.id
+  rest_api_id   = aws_api_gateway_rest_api.gw.id
+  stage_name    = "dev"
+  tags          = local.tags
+}
+
 locals {
-  apigw_url = "${resource.aws_api_gateway_deployment.gw-deployment.invoke_url}${aws_api_gateway_stage.gw-stage.stage_name}/"
+  # ${aws_api_gateway_stage.gw-stage.stage_name}
+  apigw_url = "${aws_api_gateway_stage.gw-stage.invoke_url}/"
 }
 
 output "gw_url" {
@@ -46,12 +62,6 @@ output "base_url" {
   sensitive   = false
 }
 
-resource "aws_api_gateway_stage" "gw-stage" {
-  deployment_id = aws_api_gateway_deployment.gw-deployment.id
-  rest_api_id   = aws_api_gateway_rest_api.gw.id
-  stage_name    = "dev"
-  tags          = local.tags
-}
 
 #############################
 # S3 Integration Definition #
@@ -172,9 +182,9 @@ resource "aws_api_gateway_integration_response" "s3-root" {
   ]
 }
 
-#################################
-# Lambda Integration Definition #
-#################################
+###########################################
+# Chaincode Lambda Integration Definition #
+###########################################
 
 resource "aws_api_gateway_resource" "lambda" {
   rest_api_id = aws_api_gateway_rest_api.gw.id
@@ -182,7 +192,6 @@ resource "aws_api_gateway_resource" "lambda" {
 
   path_part = "transaction"
 }
-
 resource "aws_api_gateway_method" "lambda" {
   rest_api_id = aws_api_gateway_rest_api.gw.id
   resource_id = aws_api_gateway_resource.lambda.id
@@ -222,3 +231,57 @@ resource "aws_api_gateway_authorizer" "cognito_integration" {
     tolist(data.aws_cognito_user_pools.identity.arns)[0]
   ]
 }
+
+###########################################
+# Assessment Lambda Hookup to API Gateway #
+###########################################
+resource "aws_api_gateway_resource" "assessment_lambda" {
+  rest_api_id = aws_api_gateway_rest_api.gw.id
+  parent_id   = aws_api_gateway_rest_api.gw.root_resource_id
+
+  path_part = "assessment_tf"
+}
+
+resource "aws_api_gateway_method" "post_for_assessment_lambda" {
+  rest_api_id = aws_api_gateway_rest_api.gw.id
+  resource_id = aws_api_gateway_resource.assessment_lambda.id
+
+  http_method          = "POST"
+  authorization        = "COGNITO_USER_POOLS"
+  authorizer_id        = aws_api_gateway_authorizer.cognito_integration.id
+  authorization_scopes = ["openid", "email"]
+}
+
+# resource "aws_api_gateway_integration" "integration_for_assessment_lambda" {
+#   rest_api_id = aws_api_gateway_rest_api.gw.id
+#   resource_id = aws_api_gateway_resource.assessment_lambda.id
+#   http_method = aws_api_gateway_method.post_for_assessment_lambda.http_method
+
+#   uri                     = "arn:aws:lambda:us-east-1:259202176582:function:blossom-ec2-assessment"
+#   type                    = "AWS_PROXY"
+#   integration_http_method = "POST"
+# }
+
+###================================================================================================
+
+
+
+# resource "aws_lambda_permission" "lambda-permission" {
+#   statement_id  = "AllowMyDemoAPIInvoke"
+#   action        = "lambda:InvokeFunction"
+#   function_name = aws_lambda_function.query.function_name
+#   principal     = "apigateway.amazonaws.com"
+
+#   # The /*/*/* part allows invocation from any stage, method and resource path
+#   # within API Gateway REST API.
+#   source_arn = "${aws_api_gateway_rest_api.gw.execution_arn}/*/*/*"
+# }
+
+# resource "aws_api_gateway_authorizer_aa" "cognito_integration" {
+#   name        = "blossom_test-cognito_integration"
+#   type        = "COGNITO_USER_POOLS"
+#   rest_api_id = aws_api_gateway_rest_api.gw.id
+#   provider_arns = [
+#     tolist(data.aws_cognito_user_pools.identity.arns)[0]
+#   ]
+# }
