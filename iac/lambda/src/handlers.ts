@@ -5,12 +5,14 @@ import { int } from "aws-sdk/clients/datapipeline";
 
 // const CHANNEL_NAME = process.env.CHANNEL_NAME ?? 'acquisition';
 // const CONTRACT_NAME = process.env.CONTRACT_NAME ?? 'blossom';
-const CHANNEL_NAME = process.env.CHANNEL_NAME ?? 'authorization';
-const CONTRACT_NAME = process.env.CONTRACT_NAME ?? 'authorization';
-const AUTH_CHANNEL = process.env.AUTH_CHANNEL ?? 'authorization';
-const AUTH_CONTRACT = process.env.AUTH_CONTRACT  ?? 'authorization';
-const BUS_CHANNEL = process.env.BUS_CHANNEL ?? "business" ;
-const BUS_CONTRACT = process.env.BUS_CONTRACT ?? "business";
+const CHANNEL_NAME = process.env.CHANNEL_NAME ?? 'blossom-auth';
+const CONTRACT_NAME = process.env.CONTRACT_NAME ?? 'blossom-auth-cc';
+const F_CONTRACT_NAME = process.env.CONTRACT_NAME ?? 'account';
+// -------------------------------------------------------------
+const AUTH_CHANNEL = process.env.AUTH_CHANNEL ?? 'blossom-auth';
+const AUTH_CONTRACT = process.env.AUTH_CONTRACT  ?? 'blossom-auth';
+const BUS_CHANNEL = process.env.BUS_CHANNEL ?? "blossom-asset" ;
+const BUS_CONTRACT = process.env.BUS_CONTRACT ?? "blossom-asset";
 const THIS_FILE = "handlers.ts";
 
 export type HandlerFunc = (event: APIGatewayEvent, bodyJson: any) => Promise<APIGatewayProxyResult>;
@@ -103,25 +105,104 @@ function convertTransientToBuffer(transient: Record<string, string>) {
  * @returns 
  */
 const transactionHandler = async (event: APIGatewayEvent, bodyJson: any, type: 'query' | 'invoke'): ReturnType<HandlerFunc> => {
-    console.log('Ln83: Getting username...');
-    const body = bodyJson as TransactionRequestBody;
+    console.log(`${THIS_FILE}:${pinLocationMsg('0. Setting up NAME...')}@transactionHandler`);
+    // TODO: 1. verify that function name contains f_contract_name. 
+    // E.g. 'account:', 'account:' etc
 
+    const body = bodyJson as TransactionRequestBody;
+    // TODO: 2. Replace the constants with a map resolution 
+    // of the Channel/Chaincode/Contract resolution 
+    // mapped to the actual chaincode content
     body.channel = CHANNEL_NAME;
     body.contract = CONTRACT_NAME;
+    
+    // Only debugging assignments for now     
     body.functionName =  !body.function?'account:getAccounts': body.function;
     body.name = "getAccounts";
     body.transaction = "dValue";    
     const username = getUsername(event);
-    console.log(`${pinLocation('Setting up Transaction... ')} \n ${JSON.stringify(body, null, 2)}`);
-    console.log(`${pinLocation('Setting up network... ')} on channel ${body.channel} for User: ${username}`);
+    // End of TODO
 
+    // -------------------------------
+    // Setting Up NETWORK for CHANNEL
+    // -------------------------------
+    /* Original Definition of the Network Interface:
+    export interface Network {
+        getGateway(): Gateway;
+        getContract(chaincodeId: string, name?: string): Contract;
+        getChannel(): Channel;
+        addCommitListener(listener: CommitListener, peers: Endorser[], transactionId: string): Promise<CommitListener>;
+        removeCommitListener(listener: CommitListener): void;
+        addBlockListener(listener: BlockListener, options?: ListenerOptions): Promise<BlockListener>;
+        removeBlockListener(listener: BlockListener): void;
+        }
+    */
+    console.log(`${THIS_FILE}:${pinLocationMsg('1. Set NETWORK...')}@transactionHandler`
+                +`\n${JSON.stringify(body, null, 2)}`);
     const network = await setupNetwork(username, body.channel);
-    console.log('Ln96: Setting up contract...');
-    console.log(`ln97: Setting up Transaction...\n${body}`);
+    console.log(`${pinLocationMsg('2. NETWORK Set!!!')}`
+                +`\nChannel Info:\n Contract-channel: ${body.channel}`
+                +`\n Contract-name: ${body.contract}`
+                +`\n User: ${username}`
+            );
 
-    const transaction = network.getContract(body.contract).createTransaction(body.functionName);
+    // -------------------------------
+    // Setting Up CONTRACT for NETWORK on the CHANNEL
+    // -------------------------------
+    /*
+    export interface Contract {
+        readonly chaincodeId: string;
+        readonly namespace: string;
+        createTransaction(name: string): Transaction;
+        deserializeTransaction(data: Buffer): Transaction;
+        evaluateTransaction(name: string, ...args: string[]): Promise<Buffer>;
+        submitTransaction(name: string, ...args: string[]): Promise<Buffer>;
+        addContractListener(listener: ContractListener, options?: ListenerOptions): Promise<ContractListener>;
+        removeContractListener(listener: ContractListener): void;
+        addDiscoveryInterest(interest: DiscoveryInterest): Contract;
+        resetDiscoveryInterests(): Contract;
+        }
+    */   
+    // const transaction = 
+    // network.getContract(body.contract)
+    //  .createTransaction(body.functionName);
+    console.log(`${THIS_FILE}:${pinLocationMsg('3. Set CONTRACT...')}`+
+                `\nNETWORK:\nBody-Contract: ${body.contract}`);
+    const contract = network.getContract( body.contract);
+    console.log(`${THIS_FILE}:${pinLocationMsg('4. CONTRACT Set!!!')}`+
+                `\nCONTRACT:`
+                +`\n Chaincode-ID[chaincodeId]: ${contract.chaincodeId}`
+                +`\n Namespace[namespace]:  ${contract.namespace}`);
 
-    console.log(`ln101 Setting up Transaction...\n${body}`);
+
+    // -------------------------------
+    // Setting up TRANSACTION            
+    // -------------------------------
+    /*
+    export declare class Transaction {
+        private readonly name;
+        private readonly contract;
+        private transientMap?;
+        private readonly gatewayOptions;
+        private eventHandlerStrategyFactory;
+        private readonly queryHandler;
+        private endorsingPeers?;
+        private endorsingOrgs?;
+        private readonly identityContext;
+        ....
+        getName(): string;
+        getTransactionId(): string;
+        }
+     */
+    console.log(`${THIS_FILE}:${pinLocationMsg('5. Set TRANSACTION...')}`
+                +`\nTRANSACTION:\nFunctio-nName: ${body.function}`);
+    const transaction = contract.createTransaction(body.function);    
+    console.log(`${THIS_FILE}:${pinLocationMsg('6. TRANSACTION SET!!!...')}`
+                +`\nTRANSACTION:`
+                +`\n Transaction-Object: ${transaction}`
+                +`\n TR-getName: ${transaction.getName()}`
+                +`\n TR-getTranID: ${transaction.getTransactionId()}`
+            );
 
     if (body.transient) {
         transaction.setTransient(convertTransientToBuffer(body.transient));

@@ -24,8 +24,14 @@ async function buildIdentity(username: string) {
         mspId: await getSecret(`${process.env.SSM_PREFIX}/${username}/mspId`),
         type: 'X.509'
     };
-    
     const wallet = await Wallets.newInMemoryWallet();
+
+    var imp_name=username;
+    if(username=="dc"){
+        imp_name="sam-admin";
+    }
+    
+    wallet.put(imp_name, identity);
     await wallet.put(username, identity);
     return { identity, wallet };
 }
@@ -48,7 +54,8 @@ export async function setupNetwork(username: string, channel: string) {
 
     // Decode and parse profile information
     const profile = YAML.parse(Buffer.from(profile_raw, 'base64').toString());
-    profile.network_name='Blossom';
+    // Just debugging functionality below
+    // profile.network_name='BlossomNIST';
     
     console.log(`${pinLocation('Building-Identity (ASYNC) ' + THIS_FILE)}@${today}:`
         +`\n\tProfile:\n ${JSON.stringify(profile)}`);

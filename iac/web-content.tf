@@ -10,14 +10,17 @@ locals {
     "json" = "application/json"
     "map"  = "application/json"
   }
-  webcontent_builddir = "${path.module}/../dashboard/dist"
+
+  # TODO: !!! Change this line to point to the correct RELATIVE PATH !!!
+  webcontent_builddir = "${path.module}/../../blossom-dashboard/dist"
 }
 
 output "vite_dev_env" {
   value       = <<-EOT
   VITE_CLIENT_ID=${resource.aws_cognito_user_pool_client.client.id}
   VITE_CLIENT_SECRET=${resource.aws_cognito_user_pool_client.client.client_secret}
-  VITE_AUTH_URL=https://${local.cognito_domain_prefix}.auth.${var.aws_region}.amazoncognito.com
+  VITE_AUTH_URL=https://${local.cognito_domain_stem}.auth.${var.aws_region}.amazoncognito.com
+  IDP_AUTH_URL=https://cognito-idp.us-east-1.amazonaws.com/{IDP_POOL_NAME}
   PROXY_URL=${local.apigw_url}
   EOT
   description = "The developer environment used by the dashboard"
@@ -28,7 +31,7 @@ output "vite_prod_env" {
   value       = <<-EOT
   VITE_CLIENT_ID=${resource.aws_cognito_user_pool_client.client.id}
   VITE_CLIENT_SECRET=${resource.aws_cognito_user_pool_client.client.client_secret}
-  VITE_AUTH_URL=https://${local.cognito_domain_prefix}.auth.${var.aws_region}.amazoncognito.com
+  VITE_AUTH_URL=https://${local.cognito_domain_stem}.auth.${var.aws_region}.amazoncognito.com
   BASE_URL=/${aws_api_gateway_stage.gw-stage.stage_name}/
   EOT
   description = "The production environment used by the dashboard"

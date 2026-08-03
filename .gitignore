@@ -1,2 +1,8 @@
 .DS_Store
 *node_modules/*
+*.pyc
+venv/*
+.venv/*
+.package/*
+.aa_lambda*
+.s3_lambda*

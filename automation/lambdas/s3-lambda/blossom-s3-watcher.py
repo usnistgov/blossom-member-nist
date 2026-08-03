@@ -25,7 +25,6 @@ s3_client = boto3.client(
     aws_access_key_id = S3_AKID,
     aws_secret_access_key = S3_SAK
     )
-    
 
 # Create client instance for EC2 Instance
 # The EC2 Target ID: 'i-033da04a63408423f'

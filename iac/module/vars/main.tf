@@ -10,7 +10,7 @@ variable "configuration_dir" {
 
 locals {
   configuration_files = fileset(var.configuration_dir, "*.json")
-  # environment => configuration keypairs
+  # environment => configuration key-pairs
   configurations = {
     for file_name in local.configuration_files :
     trimsuffix(file_name, ".json") => jsondecode(file("${var.configuration_dir}/${file_name}"))
