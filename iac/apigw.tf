@@ -252,15 +252,15 @@ resource "aws_api_gateway_method" "post_for_assessment_lambda" {
   authorization_scopes = ["openid", "email"]
 }
 
-# resource "aws_api_gateway_integration" "integration_for_assessment_lambda" {
-#   rest_api_id = aws_api_gateway_rest_api.gw.id
-#   resource_id = aws_api_gateway_resource.assessment_lambda.id
-#   http_method = aws_api_gateway_method.post_for_assessment_lambda.http_method
+resource "aws_api_gateway_integration" "integration_for_assessment_lambda" {
+  rest_api_id = aws_api_gateway_rest_api.gw.id
+  resource_id = aws_api_gateway_resource.assessment_lambda.id
+  http_method = aws_api_gateway_method.post_for_assessment_lambda.http_method
 
-#   uri                     = "arn:aws:lambda:us-east-1:259202176582:function:blossom-ec2-assessment"
-#   type                    = "AWS_PROXY"
-#   integration_http_method = "POST"
-# }
+  uri                     = aws_lambda_function.query.invoke_arn
+  type                    = "AWS_PROXY"
+  integration_http_method = "POST"
+}
 
 ###================================================================================================
 
