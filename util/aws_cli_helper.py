@@ -61,7 +61,7 @@ class Level(Enum):
 class APP:
     """_summary_ Container for static app-level settings
     """
-    PROJECT_NAME = "BloSS🌻M"
+    PROJECT_NAME = "BloSS@M"
     LOGGER: logging.Logger = logging.getLogger(__name__)
     LOG_AT: Level  = Level.ALL
     PRINT_AT: Level = Level.ALL
