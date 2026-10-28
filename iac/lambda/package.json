@@ -6,10 +6,6 @@
   "main": "index.js",
   "type": "module",
   "scripts": {},
-  "author": {
-    "name": "Nikita Wootten",
-    "email": "nikita.wootten@nist.gov"
-  },
   "license": "NIST-PD-fallback",
   "overrides": {
     "uuid": "^11.0.0",
